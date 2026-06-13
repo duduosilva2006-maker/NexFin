@@ -1,0 +1,73 @@
+.card-saldo-azul {
+  background: #3880ff;
+  border-radius: 20px;
+  padding: 20px;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(56, 128, 255, 0.3);
+  margin-bottom: 20px;
+}
+
+.card-saldo-azul h1.valor {
+  margin: 10px 0 20px 0;
+  font-size: 2rem;
+}
+
+.card-saldo-azul .legenda {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.card-saldo-azul .subvalor {
+  margin: 5px 0 0 0;
+  font-weight: bold;
+}
+
+.container-detalhes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.transacoes-container {
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+}
+
+.header-transacoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header-transacoes h3 { margin: 0; font-size: 1.1rem; }
+.header-transacoes a { color: #3880ff; text-decoration: none; font-size: 0.9rem; }
+
+.item-transacao {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.icone-transacao {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+.expense { background: #ff4961; color: white; }
+.income { background: #2dd36f; color: white; }
+
+.detalhes { flex-grow: 1; }
+.detalhes p { margin: 0; font-weight: bold; }
+.detalhes span { font-size: 0.8rem; color: #a0a0a0; }
+
+.valor-transacao { font-weight: bold; }

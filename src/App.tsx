@@ -1,53 +1,198 @@
+import { useState } from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
+import {
+  IonApp,
+  IonRouterOutlet,
+  IonTabs,
+  IonTabBar,
+  IonTabButton,
+  IonIcon,
+  IonLabel,
+  IonFab,
+  IonFabButton,
+  setupIonicReact,
+} from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import Home from './pages/Home';
+import { home, wallet, barChart, people, add } from 'ionicons/icons';
 
-/* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
-
-/* Basic CSS for apps built with Ionic */
-import '@ionic/react/css/normalize.css';
-import '@ionic/react/css/structure.css';
-import '@ionic/react/css/typography.css';
-
-/* Optional CSS utils that can be commented out */
-import '@ionic/react/css/padding.css';
-import '@ionic/react/css/float-elements.css';
-import '@ionic/react/css/text-alignment.css';
-import '@ionic/react/css/text-transformation.css';
-import '@ionic/react/css/flex-utils.css';
-import '@ionic/react/css/display.css';
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* import '@ionic/react/css/palettes/dark.always.css'; */
-/* import '@ionic/react/css/palettes/dark.class.css'; */
-import '@ionic/react/css/palettes/dark.system.css';
-
-/* Theme variables */
 import './theme/variables.css';
 
+import { AppProvider } from './context/AppContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+import TransactionModal from './components/TransactionModal';
+
+import Home from './pages/Home';
+import Transactions from './pages/Transactions';
+import AllTransactions from './pages/AllTransactions';
+import Goals from './pages/Goals';
+import Reports from './pages/Reports';
+import Family from './pages/Family';
+
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Feed from './pages/Feed';
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+interface ProtectedRouteProps {
+  component: React.ComponentType<any>;
+  exact?: boolean;
+  path: string;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  component: Component,
+  ...rest
+}) => {
+  const { user } = useAuth();
+
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        user ? <Component {...props} /> : <Redirect to="/login" />
+      }
+    />
+  );
+};
+
+const MainTabs: React.FC = () => {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <IonTabs>
+        <IonRouterOutlet>
+          <ProtectedRoute exact path="/home" component={Home} />
+
+<ProtectedRoute
+  exact
+  path="/transactions"
+  component={Transactions}
+/>
+
+<ProtectedRoute exact path="/reports" component={Reports} />
+
+<ProtectedRoute exact path="/family" component={Family} />
+
+<ProtectedRoute
+  exact
+  path="/all-transactions"
+  component={AllTransactions}
+/>
+
+<ProtectedRoute exact path="/goals" component={Goals} />
+
+<ProtectedRoute exact path="/feed" component={Feed} />
+
+<Route exact path="/">
+  <Redirect to="/login" />
+</Route>
+        </IonRouterOutlet>
+
+        <IonTabBar slot="bottom">
+          <IonTabButton tab="feed" href="/feed">
+  <IonIcon icon={barChart} />
+  <IonLabel>Feed</IonLabel>
+</IonTabButton>
+          <IonTabButton tab="home" href="/home">
+            <IonIcon icon={home} />
+            <IonLabel>Início</IonLabel>
+          </IonTabButton>
+
+          <IonTabButton tab="transactions" href="/transactions">
+            <IonIcon icon={wallet} />
+            <IonLabel>Gastos</IonLabel>
+          </IonTabButton>
+
+          <IonTabButton tab="reports" href="/reports">
+            <IonIcon icon={barChart} />
+            <IonLabel>Relatórios</IonLabel>
+          </IonTabButton>
+
+          <IonTabButton tab="family" href="/family">
+            <IonIcon icon={people} />
+            <IonLabel>Família</IonLabel>
+          </IonTabButton>
+        </IonTabBar>
+      </IonTabs>
+
+     <IonFab
+  vertical="bottom"
+  horizontal="end"
+  style={{
+    position: 'fixed',
+    bottom: '80px',
+    right: '20px',
+    zIndex: 9999
+  }}
+>
+        <IonFabButton onClick={() => setShowModal(true)}>
+          <IonIcon icon={add} />
+        </IonFabButton>
+      </IonFab>
+
+      <TransactionModal
+        isOpen={showModal}
+        onDidDismiss={() => setShowModal(false)}
+      />
+    </>
+  );
+};
+
+const AppRoutes: React.FC = () => {
+  return (
+    <IonRouterOutlet>
+      <Route exact path="/login" component={Login} />
+      <Route exact path="/register" component={Register} />
+
+      <Route exact path="/home">
+        <MainTabs />
+      </Route>
+
+      <Route exact path="/transactions">
+        <MainTabs />
+      </Route>
+
+      <Route exact path="/reports">
+        <MainTabs />
+      </Route>
+
+      <Route exact path="/family">
+        <MainTabs />
+      </Route>
+
+      <Route exact path="/all-transactions">
+        <MainTabs />
+      </Route>
+
+      <Route exact path="/goals">
+        <MainTabs />
+      </Route>
+      <Route exact path="/feed">
+  <MainTabs />
+</Route>
+
+      <Route exact path="/">
+        <Redirect to="/login" />
+      </Route>
+    </IonRouterOutlet>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppProvider>
+        <IonApp>
+          <IonReactRouter>
+            <AppRoutes />
+          </IonReactRouter>
+        </IonApp>
+      </AppProvider>
+    </AuthProvider>
+  );
+}
 
 export default App;

@@ -1,2 +1,20 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+:root {
+  /* Cores Principais do seu NexFin */
+  --ion-color-primary: #3880ff;
+  --ion-color-primary-rgb: 56, 128, 255;
+  
+  /* Ajuste para o Dark Mode Global */
+  --ion-background-color: #121212;
+  --ion-background-color-rgb: 18, 18, 18;
+  
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+  
+  --ion-item-background: #1e1e1e;
+  --ion-card-background: #1e1e1e;
+}
+
+/* Forçar a aplicação do tema escuro em todo o sistema */
+body {
+  background-color: var(--ion-background-color);
+}

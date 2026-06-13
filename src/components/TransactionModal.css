@@ -1,0 +1,54 @@
+.modal-custom {
+  --background: #0f1117;
+  --border-radius: 24px 24px 0 0;
+}
+
+ion-toolbar {
+  --background: #0f1117;
+  --border-width: 0;
+}
+
+ion-content {
+  --background: #0f1117;
+}
+
+ion-title {
+  color: white;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.input-item {
+  --background: #1b1f2a;
+  --color: white;
+  --padding-start: 15px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.input-item ion-label {
+  color: #9ca3af !important;
+  font-size: 0.9rem !important;
+}
+
+.input-item ion-input,
+.input-item ion-select {
+  color: white;
+}
+
+.btn-salvar {
+  --background: #3880ff;
+  --background-hover: #4d8dff;
+  --border-radius: 14px;
+  height: 54px;
+  margin-top: 25px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: none;
+}
+
+.btn-salvar::part(native) {
+  box-shadow: 0 4px 15px rgba(56, 128, 255, 0.35);
+}
