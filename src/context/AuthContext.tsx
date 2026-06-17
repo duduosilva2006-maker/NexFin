@@ -1,81 +1,94 @@
 import {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode
-  } from 'react';
+  createContext,
+  useContext,
+  useState,
+  useEffect
+} from 'react';
 
-interface User {
-  name: string;
-  email: string;
-  password: string;
-}
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
+
+import { auth } from '../firebase';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
-  register: (user: User) => boolean;
-  logout: () => void;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<boolean>;
+
+  register: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<boolean>;
+
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext =
+  createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({
+  children
+}: any) => {
+  const [user, setUser] =
+    useState<User | null>(null);
 
   useEffect(() => {
-    const logged = localStorage.getItem('nexfin_user_logged');
-    if (logged) {
-      setUser(JSON.parse(logged));
-    }
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (firebaseUser) => {
+          setUser(firebaseUser);
+        }
+      );
+
+    return () => unsubscribe();
   }, []);
 
-  const register = (newUser: User) => {
-    const users = JSON.parse(localStorage.getItem('nexfin_users') || '[]');
+  const register = async (
+    name: string,
+    email: string,
+    password: string
+  ) => {
+    try {
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-    const exists = users.find(
-      (u: User) => u.email === newUser.email
-    );
-
-    if (exists) return false;
-
-    users.push(newUser);
-
-    localStorage.setItem(
-      'nexfin_users',
-      JSON.stringify(users)
-    );
-
-    return true;
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const login = (email: string, password: string) => {
-    const users = JSON.parse(
-      localStorage.getItem('nexfin_users') || '[]'
-    );
+  const login = async (
+    email: string,
+    password: string
+  ) => {
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-    const found = users.find(
-      (u: User) =>
-        u.email === email &&
-        u.password === password
-    );
-
-    if (!found) return false;
-
-    localStorage.setItem(
-      'nexfin_user_logged',
-      JSON.stringify(found)
-    );
-
-    setUser(found);
-
-    return true;
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('nexfin_user_logged');
-    setUser(null);
+  const logout = async () => {
+    await signOut(auth);
   };
 
   return (

@@ -18,12 +18,12 @@ import {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
   
-    const handleRegister = () => {
-      const success = register({
-        name,
-        email,
-        password
-      });
+    const handleRegister = async () => {
+      const success = await register(
+  name,
+  email,
+  password
+);
   
       if (!success) {
         alert('Email já cadastrado');

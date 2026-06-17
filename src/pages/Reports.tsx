@@ -13,40 +13,53 @@ const Reports: React.FC = () => {
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + (t.amount || 0), 0);
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + (t.amount || 0), 0);
   const savedAmount = totalIncome - totalExpense;
-  const expenses = transactions.filter(
-    t => t.type === 'expense'
-  );
+  const expenses = transactions.filter(t => t.type === 'expense');
   
   const categories = [
-    'Alimentação',
-    'Moradia',
-    'Transporte',
-    'Saúde',
-    'Educação',
-    'Lazer',
-    'Assinaturas',
-    'Impostos',
-    'Outros'
+    'Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Impostos', 'Outros'
   ];
   
-  const chartData = categories.map(category => ({
+  const colors = [
+    '#3880ff', '#ff9800', '#2dd36f', '#eb445a', '#9966ff', '#ffce56', '#00d4ff', '#ff6384', '#95a5a6'
+  ];
+
+  const chartData = categories.map((category, index) => ({
     name: category,
     spent: expenses
       .filter(t => t.category === category)
       .reduce((sum, t) => sum + (t.amount || 0), 0),
     total: 2000,
-    color: '#3880ff'
+    color: colors[index]
   }));
   
-  function handleExport() {
+  async function handleExport() {
     const element = document.getElementById('report-content');
-    const opt = {
-      margin: 10,
-      filename: 'relatorio.pdf',
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    } as any;
-    if (element) html2pdf().set(opt).from(element).save();
+
+    if (!element) {
+      alert('Erro ao gerar o PDF.');
+      return;
+    }
+
+    try {
+      await html2pdf()
+        .set({
+          margin: 10,
+          filename: 'relatorio_nexfin.pdf',
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#000',
+            scrollY: 0
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(element)
+        .save();
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao exportar PDF.');
+    }
   }
 
   return (
@@ -60,16 +73,17 @@ const Reports: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent id="report-content" style={{ '--background': '#000' }}>
-       <div
-  style={{
-    padding: '16px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-    color: '#fff'
-  }}
->
-          
+      <IonContent style={{ '--background': '#000' }}>
+        <div
+          id="report-content"
+          style={{
+            padding: '16px',
+            maxWidth: '1400px',
+            margin: '0 auto',
+            color: '#fff',
+            background: '#000'
+          }}
+        >
           {/* Header Financeiro */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <div style={{ background: '#1e1e1e', padding: '15px', borderRadius: '12px', flex: 1 }}>
@@ -87,138 +101,73 @@ const Reports: React.FC = () => {
           </div>
 
           {/* Orçamento por Categoria */}
-          <div
-  style={{
-    background: '#171717',
-    padding: '20px',
-    borderRadius: '15px',
-    marginBottom: '20px',
-    boxShadow: '0 0 20px rgba(0,0,0,0.3)'
-  }}
->
-  <h4
-    style={{
-      margin: '0 0 15px 0',
-      fontSize: '1rem'
-    }}
-  >
-    Orçamento por Categoria
-  </h4>
-
-  {chartData.map((item, i) => (
-    <div key={i} style={{ marginBottom: '12px' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: '0.8rem',
-          marginBottom: '4px'
-        }}
-      >
-        <span>{item.name}</span>
-
-        <span style={{ color: '#aaa' }}>
-          R$ {item.spent.toFixed(2)}
-        </span>
-      </div>
-
-      <IonProgressBar
-        value={Math.min(item.spent / item.total, 1)}
-        style={{
-          '--progress-background': item.color,
-          '--background': '#333',
-          height: '6px'
-        }}
-      />
-    </div>
-  ))}
-</div>
+          <div style={{ background: '#171717', padding: '20px', borderRadius: '15px', marginBottom: '20px', boxShadow: '0 0 20px rgba(0,0,0,0.3)' }}>
+            <h4 style={{ margin: '0 0 15px 0', fontSize: '1rem' }}>Orçamento por Categoria</h4>
+            {chartData.map((item, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
+                  <span>{item.name}</span>
+                  <span style={{ color: '#aaa' }}>R$ {item.spent.toFixed(2)}</span>
+                </div>
+                <IonProgressBar
+                  value={Math.min(item.spent / item.total, 1)}
+                  style={{ '--progress-background': item.color, '--background': '#333', height: '6px' }}
+                />
+              </div>
+            ))}
+          </div>
 
           {/* Evolução */}
           <div style={{ background: '#1e1e1e', padding: '20px', borderRadius: '15px', marginBottom: '20px' }}>
             <h4 style={{ margin: '0 0 15px 0', fontSize: '1rem' }}>Evolução Financeira</h4>
             <Line
-  data={{
-    labels: [
-      'Jul/25','Ago/25','Set/25','Out/25',
-      'Nov/25','Dez/25','Jan/26','Fev/26',
-      'Mar/26','Abr/26','Mai/26','Jun/26'
-    ],
-    datasets: [
-      {
-        label: 'Poupado',
-        data: [9800,10200,9900,10400,9800,11300,10200,10200,10200,10900,10200,11200],
-        borderColor: '#3b9cff',
-        backgroundColor: '#3b9cff',
-        tension: 0.4,
-        pointRadius: 5,
-        pointHoverRadius: 7
-      }
-    ]
-  }}
-  options={{
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#999',
-          usePointStyle: true
-        }
-      }
-    },
-    scales: {
-      x: {
-        ticks: { color: '#999' },
-        grid: {
-          color: 'rgba(255,255,255,0.08)'
-        }
-      },
-      y: {
-        min: 0,
-        max: 12000,
-        ticks: {
-          color: '#999',
-          callback: (value) =>
-            Number(value) >= 1000
-              ? `${Number(value) / 1000} mil`
-              : value
-        },
-        grid: {
-          color: 'rgba(255,255,255,0.08)'
-        }
-      }
-    }
-  }}
-/>
+              data={{
+                labels: ['Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26','Mar/26','Abr/26','Mai/26','Jun/26'],
+                datasets: [{
+  label: 'Saldo',
+  data: [
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount,
+    savedAmount
+  ],
+                  borderColor: '#3b9cff',
+                  backgroundColor: '#3b9cff',
+                  tension: 0.4,
+                  pointRadius: 5,
+                  pointHoverRadius: 7
+                }]
+              }}
+              options={{
+                responsive: true,
+                plugins: { legend: { position: 'bottom', labels: { color: '#999', usePointStyle: true } } },
+                scales: {
+                  x: { ticks: { color: '#999' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                  y: { min: 0, max: 12000, ticks: { color: '#999', callback: (value) => Number(value) >= 1000 ? `${Number(value) / 1000} mil` : value }, grid: { color: 'rgba(255,255,255,0.08)' } }
+                }
+              }}
+            />
+          </div>
 
-</div>
           {/* Categorias (Doughnut) */}
           <div style={{ background: '#1e1e1e', padding: '20px', borderRadius: '15px' }}>
             <h4 style={{ margin: '0 0 15px 0', fontSize: '1rem' }}>Despesas por Categoria</h4>
-            <div
-  style={{
-    width: '320px',
-    height: '320px',
-    margin: '0 auto',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }}
->
+            <div style={{ width: '320px', height: '320px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Doughnut data={{
                 labels: chartData.map(c => c.name),
-                datasets: [{ data: chartData.map(c => c.spent),backgroundColor: [
-                  '#3880ff',
-                  '#ff9800',
-                  '#2dd36f',
-                  '#eb445a',
-                  '#9966ff',
-                  '#ffce56',
-                  '#00d4ff',
-                  '#ff6384',
-                  '#95a5a6'
-                 ], borderWidth: 0 }]
+                datasets: [{ 
+                  data: chartData.map(c => c.spent),
+                  backgroundColor: chartData.map(c => c.color), 
+                  borderWidth: 0 
+                }]
               }} />
             </div>
           </div>
@@ -227,6 +176,5 @@ const Reports: React.FC = () => {
     </IonPage>
   );
 };
-
 
 export default Reports;

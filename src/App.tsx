@@ -13,7 +13,14 @@ import {
   setupIonicReact,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { home, wallet, barChart, people, add } from 'ionicons/icons';
+import {
+  home,
+  wallet,
+  barChart,
+  people,
+  add,
+  informationCircleOutline
+} from 'ionicons/icons';
 
 import '@ionic/react/css/core.css';
 import './theme/variables.css';
@@ -22,13 +29,14 @@ import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 import TransactionModal from './components/TransactionModal';
-
+import About from './pages/about';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import AllTransactions from './pages/AllTransactions';
 import Goals from './pages/Goals';
 import Reports from './pages/Reports';
 import Family from './pages/Family';
+import ForgotPassword from './pages/ForgotPassword';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -74,6 +82,8 @@ const MainTabs: React.FC = () => {
 
 <ProtectedRoute exact path="/reports" component={Reports} />
 
+<ProtectedRoute exact path="/about" component={About} />
+
 <ProtectedRoute exact path="/family" component={Family} />
 
 <ProtectedRoute
@@ -112,9 +122,14 @@ const MainTabs: React.FC = () => {
           </IonTabButton>
 
           <IonTabButton tab="family" href="/family">
-            <IonIcon icon={people} />
-            <IonLabel>Família</IonLabel>
-          </IonTabButton>
+  <IonIcon icon={people} />
+  <IonLabel>Família</IonLabel>
+</IonTabButton>
+
+<IonTabButton tab="about" href="/about">
+  <IonIcon icon={informationCircleOutline} />
+  <IonLabel>Sobre</IonLabel>
+</IonTabButton>
         </IonTabBar>
       </IonTabs>
 
@@ -146,6 +161,7 @@ const AppRoutes: React.FC = () => {
     <IonRouterOutlet>
       <Route exact path="/login" component={Login} />
       <Route exact path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} exact />
 
       <Route exact path="/home">
         <MainTabs />
@@ -177,6 +193,9 @@ const AppRoutes: React.FC = () => {
       <Route exact path="/">
         <Redirect to="/login" />
       </Route>
+      <Route exact path="/about">
+  <MainTabs />
+</Route>
     </IonRouterOutlet>
   );
 };

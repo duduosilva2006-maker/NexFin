@@ -17,8 +17,11 @@ import {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
   
-    const handleLogin = () => {
-      const success = login(email, password);
+    const handleLogin = async () => {
+      const success = await login(
+  email,
+  password
+);
   
       if (success) {
         history.push('/home');
@@ -97,6 +100,9 @@ import {
     >
       Criar Conta
     </IonButton>
+    <IonButton fill="clear" expand="block" routerLink="/forgot-password">
+  Esqueci minha senha
+</IonButton>
   </div>
 </IonContent>
       </IonPage>

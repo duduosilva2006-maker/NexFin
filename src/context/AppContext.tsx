@@ -6,6 +6,15 @@ import React, {
   useEffect
 } from 'react';
 
+import { db } from '../firebase';
+import { getAuth } from 'firebase/auth';
+
+import {
+  collection,
+  addDoc,
+  getDocs
+} from 'firebase/firestore';
+
 export interface Transaction {
   description: string;
   amount: number;
@@ -18,7 +27,7 @@ export interface Transaction {
 
 interface AppContextType {
   transactions: Transaction[];
-  addTransaction: (t: Transaction) => void;
+  addTransaction: (t: Transaction) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -26,8 +35,18 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({
   children
 }) => {
+
+  // 🔧 CORREÇÃO: mover para antes do useState
+  const currentUser = JSON.parse(
+    localStorage.getItem('nexfin_user_logged') || '{}'
+  );
+
+  const STORAGE_KEY =
+    `nexfin_transactions_${currentUser.email || 'guest'}`;
+
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('nexfin_transactions');
+    // 🔧 CORREÇÃO: agora STORAGE_KEY existe aqui
+    const saved = localStorage.getItem(STORAGE_KEY);
 
     if (saved) {
       return JSON.parse(saved);
@@ -129,22 +148,58 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     localStorage.setItem(
-      'nexfin_transactions',
+      STORAGE_KEY,
       JSON.stringify(transactions)
     );
   }, [transactions]);
 
-  const addTransaction = (t: Transaction) => {
-    setTransactions(prev => [t, ...prev]);
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        const auth = getAuth();
+        const email = auth.currentUser?.email;
+
+        if (!email) return;
+
+        const snapshot = await getDocs(
+          collection(db, `transactions_${email}`)
+        );
+
+        const data = snapshot.docs.map(
+          doc => doc.data() as Transaction
+        );
+
+        if (data.length > 0) {
+          setTransactions(data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadTransactions();
+  }, []);
+
+  const addTransaction = async (t: Transaction) => {
+    try {
+      const auth = getAuth();
+      const email = auth.currentUser?.email;
+
+      if (!email) return;
+
+      await addDoc(
+        collection(db, `transactions_${email}`),
+        t
+      );
+
+      setTransactions(prev => [t, ...prev]);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+    }
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        transactions,
-        addTransaction
-      }}
-    >
+    <AppContext.Provider value={{ transactions, addTransaction }}>
       {children}
     </AppContext.Provider>
   );
@@ -154,9 +209,7 @@ export const useAppContext = () => {
   const context = useContext(AppContext);
 
   if (!context) {
-    throw new Error(
-      'useAppContext deve ser usado dentro de um AppProvider'
-    );
+    throw new Error('useAppContext deve ser usado dentro de um AppProvider');
   }
 
   return context;

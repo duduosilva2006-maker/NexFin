@@ -17,7 +17,7 @@ const Home: React.FC = () => {
 useState('Verificando...');
   const { user } = useAuth();
   useEffect(() => {
-  const checkNetwork = async () => {
+  const loadStatus = async () => {
     const status = await Network.getStatus();
 
     setConnectionStatus(
@@ -25,7 +25,20 @@ useState('Verificando...');
     );
   };
 
-  checkNetwork();
+  loadStatus();
+
+  const listener = Network.addListener(
+    'networkStatusChange',
+    status => {
+      setConnectionStatus(
+        status.connected ? 'Online' : 'Offline'
+      );
+    }
+  );
+
+  return () => {
+    listener.then(l => l.remove());
+  };
 }, []);
   const { transactions } = useAppContext();
 
@@ -100,7 +113,7 @@ const goals = JSON.parse(
         
         <div style={{ marginBottom: '40px' }}>
           <h2 style={{ margin: 0, fontSize: '2.2rem' }}>
-  Olá, {user?.name || 'Usuário'}!
+Olá, {user?.email?.split('@')[0] || 'Usuário'}!
 </h2>
           <p style={{ margin: '5px 0', fontSize: '1.3rem', opacity: 0.7 }}>Gerencie suas finanças familiares</p>
         </div>
@@ -139,11 +152,14 @@ const goals = JSON.parse(
   }}
 >
   <h3>Status da Rede</h3>
-
-  <p>
-    Conexão atual:
-    <strong> {connectionStatus}</strong>
-  </p>
+<p>
+  Conexão atual:
+  <strong>
+    {connectionStatus === 'Online'
+      ? ' 🟢 Online'
+      : ' 🔴 Offline'}
+  </strong>
+</p>
 </div>
 
 {/* Evolução Financeira */}
